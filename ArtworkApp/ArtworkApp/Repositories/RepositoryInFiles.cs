@@ -32,6 +32,7 @@ public class RepositoryInFiles<T> : IRepository<T>
 
     public IEnumerable<T> GetAll()
     {
+        _itemsSet.Clear();
         CreateFileIfNotExist();
 
         List<string> jsonItemsAll = File.ReadAllLines(_path).ToList();
