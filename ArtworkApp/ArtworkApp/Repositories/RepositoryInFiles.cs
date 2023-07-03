@@ -12,7 +12,7 @@ public class RepositoryInFiles<T> : IRepository<T>
     private readonly List<T> _itemsToAdd = new();
     private readonly List<int> _itemsIdToRemove = new();
     private readonly string _directoryname = $"Repository";
-    private readonly string _path = $".\\Repository\\{typeof(T).Name}.txt";
+    private readonly string _path = $".\\Repository\\{typeof(T).Name}.json";
 
 
     public RepositoryInFiles()
