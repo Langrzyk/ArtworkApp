@@ -1,10 +1,13 @@
 ﻿using ArtworkApp.Data;
 using ArtworkApp.Entities;
 using ArtworkApp.Repositories;
+using System;
+using System.Diagnostics;
 using System.Globalization;
 
 IRepository<Painting> paintingRepository;
 IRepository<Sculpture> sculptureRepository;
+bool AppRun = true;
 
 Console.WriteLine("Artwork - console application for storing data on works of art.\n");
 
@@ -37,7 +40,7 @@ if (GetValueFromUser().ToUpper() == "Y")
     WriteAllToConsole(sculptureRepository);
 }
 
-while (true)
+while (AppRun)
 {
     Console.WriteLine("\nWhat you want to do?\n" +
                         "1 - Add Artwork\n" +
@@ -49,7 +52,7 @@ while (true)
     string? actionChoese = GetValueFromUser();
     if (actionChoese.ToUpper() == "Q")
     {
-        return;
+        break;
     }
 
     Console.WriteLine("Which type of artwork?");
@@ -58,99 +61,22 @@ while (true)
     switch (actionChoese.ToUpper())
     {
         case "1":
-            Console.WriteLine("-- Add Artwork --");
-            try
-            {
-                switch (artworkType)
-                {
-                    case entitiesType.PAINTINGS:
-                        Painting painting = GetDataForAddPainting();
-                        paintingRepository.Add(painting);
-                        paintingRepository.Save();
-                        break;
-                    case entitiesType.SCULPTURES:
-                        Sculpture sculpture = GetDataForAddSculpture();
-                        sculptureRepository.Add(sculpture);
-                        sculptureRepository.Save();
-                        break;
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"{e.Message}", Console.ForegroundColor = ConsoleColor.Red);
-                Console.ResetColor();
-                Console.WriteLine();
-            }
+            AddArtwork(paintingRepository, sculptureRepository, artworkType);
             break;
 
         case "2":
-            Console.WriteLine("-- Remove Artwork --");
-            Console.Write($"Select ID of {artworkType} to remove:");
-            try
-            {
-                int idToRemove = Int32.Parse(GetValueFromUser());
-                switch (artworkType)
-                {
-                    case entitiesType.PAINTINGS:
-                        Painting paintingToRemove = GetItemByID(paintingRepository, idToRemove);
-                        paintingRepository.Remove(paintingToRemove);
-                        paintingRepository.Save();
-                        break;
-                    case entitiesType.SCULPTURES:
-                        Sculpture sculpture = GetItemByID(sculptureRepository, idToRemove);
-                        sculptureRepository.Add(sculpture);
-                        sculptureRepository.Save();
-                        break;
-                }
-            }
-            catch(Exception e)
-            {
-                Console.WriteLine($"{e.Message}", Console.ForegroundColor = ConsoleColor.Red);
-                Console.ResetColor();
-                Console.WriteLine();
-            }
+            RemoveArtwork(paintingRepository, sculptureRepository, artworkType);
             break;
 
         case "3":
-            Console.WriteLine("-- Show Artwork by ID --");
-            Console.Write($"Select ID of {artworkType} to show:");
-            try
-            {
-                int idToRemove = Int32.Parse(GetValueFromUser());
-                switch (artworkType)
-                {
-                    case entitiesType.PAINTINGS:
-                        Painting paintingToRemove = GetItemByID(paintingRepository, idToRemove);
-                        Console.WriteLine(paintingToRemove);
-                        break;
-                    case entitiesType.SCULPTURES:
-                        Sculpture sculpture = GetItemByID(sculptureRepository, idToRemove);
-                        Console.WriteLine(sculpture);
-                        break;
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"{e.Message}", Console.ForegroundColor = ConsoleColor.Red);
-                Console.ResetColor();
-                Console.WriteLine();
-            }
+            ShowArtworkByID(paintingRepository, sculptureRepository, artworkType);
             break;
 
         case "4":
-            Console.WriteLine("-- View stored data --");
-            switch (artworkType)
-            {
-                case entitiesType.PAINTINGS:
-                    WriteAllToConsole(paintingRepository);
-                    break;
-                case entitiesType.SCULPTURES:
-                    WriteAllToConsole(sculptureRepository);
-                    break;
-            }
+            ViewStoredData(paintingRepository, sculptureRepository, artworkType);
             break;
         case "Q":
-            Console.WriteLine("--- CLOSE APP ---");
+            AppRun = false;
             return;
 
         default:
@@ -159,6 +85,8 @@ while (true)
             continue;
     }
 }
+
+Console.WriteLine("--- CLOSE APP ---");
 
 static string GetValueFromUser()
 {
@@ -182,18 +110,50 @@ static T GetItemByID<T>(IRepository<T> repository,  int id) where T : class, IEn
     }
 }
 
-static IRepository<T> GetRepository<T>(repositoryType repoType) where T : class, IEntity
+IRepository<T> GetRepository<T>(repositoryType repoType) where T : class, IEntity
 {
     switch (repoType)
     {
         case repositoryType.MS_SQL_SERVER:
-            return new SqlRepository<T>(new ArtworkAppDbContext());
+            SqlRepository<T> repoSql = new SqlRepository<T>(new ArtworkAppDbContext());
+            repoSql.ItemAdded += OnItemAdded;
+            repoSql.ItemRemoved += OnItemRemoved;
+            return repoSql;
 
         case repositoryType.TEXT_FILES:
-            return new RepositoryInFiles<T>();
+            RepositoryInFiles<T> repoInFile = new RepositoryInFiles<T>();
+            repoInFile.ItemAdded += OnItemAdded;
+            repoInFile.ItemRemoved += OnItemRemoved;
+            return repoInFile;
 
         default:
             return null;
+    }
+}
+
+void OnItemRemoved(object? sender, IEntity e)
+{
+    if (sender is not null)
+    {
+        var senderName = sender.GetType().Name;
+        SaveInLogFile($"{senderName.Substring(0, senderName.Length - 2)}", $"{e.GetType().Name}Removed", e.ToString() ?? "");
+    }
+}
+
+void OnItemAdded(object? sender, IEntity e)
+{
+    if (sender is not null)
+    {
+        var senderName = sender.GetType().Name;
+        SaveInLogFile($"{senderName.Substring(0, senderName.Length - 2)}", $"{e.GetType().Name}Added", e.ToString() ?? "");
+    }
+}
+
+void SaveInLogFile(string repository, string action, string comment)
+{
+    using (var writer = File.AppendText($"ArtworkAppLOG.txt"))
+    {
+        writer.WriteLine($"[{DateTime.Now}]-{repository}-{action}-[{comment}]");
     }
 }
 
@@ -263,6 +223,103 @@ static void WriteAllToConsole(IReadRepository<IEntity> repository)
     foreach (var item in items)
     {
         Console.WriteLine(item);
+    }
+}
+
+static void AddArtwork(IRepository<Painting> paintingRepository, IRepository<Sculpture> sculptureRepository, entitiesType artworkType)
+{
+    Console.WriteLine("-- Add Artwork --");
+    try
+    {
+        switch (artworkType)
+        {
+            case entitiesType.PAINTINGS:
+                Painting painting = GetDataForAddPainting();
+                paintingRepository.Add(painting);
+                paintingRepository.Save();
+                break;
+            case entitiesType.SCULPTURES:
+                Sculpture sculpture = GetDataForAddSculpture();
+                sculptureRepository.Add(sculpture);
+                sculptureRepository.Save();
+                break;
+        }
+    }
+    catch (Exception e)
+    {
+        Console.WriteLine($"{e.Message}", Console.ForegroundColor = ConsoleColor.Red);
+        Console.ResetColor();
+        Console.WriteLine();
+    }
+}
+
+static void RemoveArtwork(IRepository<Painting> paintingRepository, IRepository<Sculpture> sculptureRepository, entitiesType artworkType)
+{
+    Console.WriteLine("-- Remove Artwork --");
+    Console.Write($"Select ID of {artworkType} to remove:");
+    try
+    {
+        int idToRemove = Int32.Parse(GetValueFromUser());
+        switch (artworkType)
+        {
+            case entitiesType.PAINTINGS:
+                Painting paintingToRemove = GetItemByID(paintingRepository, idToRemove);
+                paintingRepository.Remove(paintingToRemove);
+                paintingRepository.Save();
+                break;
+            case entitiesType.SCULPTURES:
+                Sculpture sculpture = GetItemByID(sculptureRepository, idToRemove);
+                sculptureRepository.Add(sculpture);
+                sculptureRepository.Save();
+                break;
+        }
+    }
+    catch (Exception e)
+    {
+        Console.WriteLine($"{e.Message}", Console.ForegroundColor = ConsoleColor.Red);
+        Console.ResetColor();
+        Console.WriteLine();
+    }
+}
+
+static void ShowArtworkByID(IRepository<Painting> paintingRepository, IRepository<Sculpture> sculptureRepository, entitiesType artworkType)
+{
+    Console.WriteLine("-- Show Artwork by ID --");
+    Console.Write($"Select ID of {artworkType} to show:");
+    try
+    {
+        int idToRemove = Int32.Parse(GetValueFromUser());
+        switch (artworkType)
+        {
+            case entitiesType.PAINTINGS:
+                Painting paintingToRemove = GetItemByID(paintingRepository, idToRemove);
+                Console.WriteLine(paintingToRemove);
+                break;
+            case entitiesType.SCULPTURES:
+                Sculpture sculpture = GetItemByID(sculptureRepository, idToRemove);
+                Console.WriteLine(sculpture);
+                break;
+        }
+    }
+    catch (Exception e)
+    {
+        Console.WriteLine($"{e.Message}", Console.ForegroundColor = ConsoleColor.Red);
+        Console.ResetColor();
+        Console.WriteLine();
+    }
+}
+
+static void ViewStoredData(IRepository<Painting> paintingRepository, IRepository<Sculpture> sculptureRepository, entitiesType artworkType)
+{
+    Console.WriteLine("-- View stored data --");
+    switch (artworkType)
+    {
+        case entitiesType.PAINTINGS:
+            WriteAllToConsole(paintingRepository);
+            break;
+        case entitiesType.SCULPTURES:
+            WriteAllToConsole(sculptureRepository);
+            break;
     }
 }
 
