@@ -54,6 +54,13 @@ public class RepositoryInFiles<T> : IRepository<T>
         return items.Single(x => x.Id == id);
     }
 
+    public int GetItemCount()
+    {
+        var result = GetAll().Count();
+        return result;
+
+    }
+
     public void Remove(T item)
     {
         _itemsIdToRemove.Add(item.Id);

@@ -36,6 +36,13 @@ public class SqlRepository<T> : IRepository<T>
         return _dbSet.Find(id);
     }
 
+    public int GetItemCount()
+    {
+        var result = _dbSet.Count();
+
+        return result;
+    }
+
     public void Remove(T item)
     {
         _dbSet.Remove(item);
