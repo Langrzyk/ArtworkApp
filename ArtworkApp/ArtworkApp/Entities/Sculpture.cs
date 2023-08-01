@@ -5,5 +5,5 @@ public class Sculpture : EntityBase
     public string? Material { get; set; }
 
     public override string ToString() => $"|Sculpture| Id: {Id}, Title: {Title}, CreationDate: {CreatedDate}, " +
-        $"Material: {Material}";
+        $"Material: {Material}, Price: {Price:M}";
 }

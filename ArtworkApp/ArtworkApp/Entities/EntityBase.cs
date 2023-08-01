@@ -12,4 +12,6 @@ public class EntityBase : IEntity
     public string? Title { get; set; }
 
     public DateTime CreatedDate { get; set; }
+
+    public decimal Price { get; set; }
 }
