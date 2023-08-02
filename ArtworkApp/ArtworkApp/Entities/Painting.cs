@@ -7,5 +7,5 @@ public class Painting : EntityBase
     public string? Technics { get; set; }
 
     public override string ToString() => $"|Paintings| Id: {Id}, Title: {Title}, CreationDate: {CreatedDate}, " +
-        $"Type: {Type}, Technics: {Technics}, Price: {Price:M}";
+        $"Type: {Type}, Technics: {Technics}, Price: {Price}";
 }

@@ -53,7 +53,7 @@ public abstract class DataProviderBase<T> : IDataProvider<T>
         var paintings = _entitiesRepository.GetAll();
 
         return paintings
-            .OrderBy(x => x.Title)
+            .OrderBy(x => x.Id)
             .Skip(pageNumber * recordsPerPage)
             .Take(recordsPerPage)
             .ToList();
