@@ -1,11 +1,12 @@
-﻿using ArtworkApp.DataProviders;
-using ArtworkApp.Entities;
-using ArtworkApp.Repositories;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using System.Security.Cryptography;
+using ArtworkApp.Data.Entities;
+using ArtworkApp.Data.Repositories;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using ArtworkApp.Components.DataProviders;
+using ArtworkApp.Services.XmlService;
 
 namespace ArtworkApp.UserCommunication;
 
@@ -15,18 +16,21 @@ public class ConsoleCommunication : IUserCommunication
     private readonly IRepository<Sculpture> _sculptureRepository;
     private readonly IPaintingsProvider _paintingsProvider;
     private readonly ISculptureProvider _sculpturesProvider;
+    private readonly IXmlService _xmlService;
     private const int RECORDS_PER_PAGE = 2;
 
     public ConsoleCommunication(
         IRepository<Painting> paintingRepository,
         IRepository<Sculpture> sculptureRepository,
         IPaintingsProvider paintingsProvider,
-        ISculptureProvider sculpturesProvider)
+        ISculptureProvider sculpturesProvider,
+        IXmlService xmlService)
     {
         _paintingRepository = paintingRepository;
         _sculptureRepository = sculptureRepository;
         _paintingsProvider = paintingsProvider;
         _sculpturesProvider = sculpturesProvider;
+        _xmlService = xmlService;
     }
 
     public void HelloDisplay()
@@ -87,6 +91,9 @@ public class ConsoleCommunication : IUserCommunication
                     case "11":
                         DataPageing(_sculpturesProvider);
                         break;
+                    case "12":
+                        CreateXmlFromCsvAndGetFemaleArtists();
+                        break;
                     case "Q":
                         programRun = false;
                         break;
@@ -108,7 +115,7 @@ public class ConsoleCommunication : IUserCommunication
         
     }
 
-    
+
 
     private static void ShowMainMenu()
     {
@@ -126,6 +133,7 @@ public class ConsoleCommunication : IUserCommunication
         Console.WriteLine("     9:  Remove Sculpture");
         Console.WriteLine("     10: Show all Painting");
         Console.WriteLine("     11: Show all Sculpture");
+        Console.WriteLine("     12: Create XML from CSV and get Female Artist from XML");
         Console.WriteLine("     Q:  Quit application");
         Console.WriteLine("___________________________________________________________________________________");
         Console.ResetColor();
@@ -366,6 +374,21 @@ public class ConsoleCommunication : IUserCommunication
         {
             Console.WriteLine(repository.GetInfo(item));
         }
+    }
+
+    private void CreateXmlFromCsvAndGetFemaleArtists()
+    {
+        Console.WriteLine($"-----------------------------------------------------------------------------------");
+        Console.WriteLine($"                 Create XML from CSV and get Female Artist from XML                ");
+        Console.WriteLine($"-----------------------------------------------------------------------------------");
+        Console.Write("Creating XML...");
+        _xmlService.CreateXml();
+        Console.WriteLine("Done!\n");
+
+        Console.WriteLine($"Female Artist from XML:");
+        _xmlService.QueryXml();
+
+        Console.WriteLine($"-----------------------------------------------------------------------------------");
     }
 
 }

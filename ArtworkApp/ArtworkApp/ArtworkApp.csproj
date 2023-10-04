@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -8,8 +8,35 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="App.cs~RF56fa689f.TMP" />
+    <None Remove="Components\DataProviders\PaintingsProvider.cs~RF2dbf467c.TMP" />
+    <None Remove="Components\DataProviders\PaintingsProvider.cs~RF2dea13a3.TMP" />
+    <None Remove="Components\DataProviders\SculptureProvider.cs~RFf675038.TMP" />
+    <None Remove="Data\Entities\EntityBase.cs~RF32bf1028.TMP" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="7.0.7" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Resources\Files\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Resources\Files\ArtistsApp.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Files\ArtworksApp.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Files\public-art-open.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Files\public-art-open2.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

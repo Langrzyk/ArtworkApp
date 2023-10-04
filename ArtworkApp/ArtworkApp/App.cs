@@ -1,8 +1,10 @@
-﻿using ArtworkApp.DataProviders;
-using ArtworkApp.Entities;
-using ArtworkApp.Repositories;
-using ArtworkApp.Services;
+﻿using ArtworkApp.Components.CsvReader;
+using ArtworkApp.Services.EventHandlerService;
+using ArtworkApp.Services.XmlService;
 using ArtworkApp.UserCommunication;
+using System.Linq;
+using System.Reflection.Metadata;
+using System.Xml.Linq;
 
 namespace ArtworkApp;
 
@@ -18,6 +20,8 @@ public class App : IApp
         _userCommunication = userCommunication;
         _eventHandlerService = eventHandlerService;
     } 
+
+
 
     public void Run()
     {

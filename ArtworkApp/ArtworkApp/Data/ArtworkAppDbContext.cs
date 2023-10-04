@@ -1,6 +1,7 @@
-﻿namespace ArtworkApp.Data;
+﻿using ArtworkApp.Data.Entities;
 
-using ArtworkApp.Entities;
+namespace ArtworkApp.Data;
+
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations.Schema;
 
